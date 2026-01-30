@@ -2,47 +2,69 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>AR Tableaux</title>
-<!-- A-Frame (nécessaire pour AR) -->
-<script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
+  <title>AR Tableau</title>
 
-<!-- MindAR.js prêt à l'emploi depuis Internet -->
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.css">
+  <!-- Bibliothèques A-Frame et MindAR -->
+  <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.css">
 
+  <style>
+    /* Supprime les marges et force la scène à occuper tout l'écran */
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+    a-scene {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
+
 <body>
+  <!-- Vidéo invisible qui sera utilisée par AR -->
+  <video id="video1" src="videos/video1.mp4" preload="auto" loop muted playsinline crossorigin="anonymous"></video>
 
-  <h2>Scannez le tableau pour voir la vidéo</h2>
+  <!-- Scene AR -->
+  <a-scene mindar-image="imageTargetSrc: markers/tableau1.mind; autoStart: true;" embedded
+           vr-mode-ui="enabled: false"
+           renderer="antialias: true; alpha: true">
 
-  <a-scene mindar-image="imageTargetSrc: markers/tableau1.mind;" embedded color-space="sRGB" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: true">
+    <!-- Lumière de la scène -->
+    <a-entity light="type: ambient; intensity: 1"></a-entity>
 
-    <a-assets>
-      <video id="video1" src="videos/video1.mp4" preload="auto" loop muted playsinline crossorigin="anonymous"></video>
+    <!-- Tout ce qui est à l'intérieur de ce entity n'apparaît que lorsque le marker est détecté -->
+    <a-entity mindar-image-target="targetIndex: 0">
 
-    </a-assets>
+      <!-- La vidéo qui s'affiche sur le marker -->
+      <a-video src="#video1" width="1" height="0.75" position="0 0 0" rotation="0 0 0"></a-video>
 
-    <a-camera position="0 0 0"></a-camera>
+    </a-entity>
 
-    <a-marker mindar-image-target="targetIndex: 0">
-      <a-video src="#video1" width="1" height="0.6" position="0 0 0" rotation="0 0 0" autoplay="true" loop="true"></a-video>
-    </a-marker>
+  </a-scene>
 
-  <a-scene mindar-image="imageTargetSrc: markers/tableau1.mind;" embedded
-         vr-mode-ui="enabled: false" 
-         renderer="antialias: true; alpha: true"
-         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; margin: 0;">
-
+  <!-- Script pour forcer le démarrage de la vidéo dès détection du marker -->
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const sceneEl = document.querySelector("a-scene");
-      sceneEl.addEventListener("loaded", () => {
-        const videoEl = document.querySelector("#video1");
-        videoEl.play();
+    const sceneEl = document.querySelector("a-scene");
+    const videoEl = document.querySelector("#video1");
+
+    sceneEl.addEventListener("renderstart", () => {
+      // Récupère l'AR system
+      const mindar = sceneEl.components['mindar-image-system'];
+      mindar.el.addEventListener("targetFound", () => {
+        videoEl.play(); // Démarre la vidéo automatiquement
+      });
+      mindar.el.addEventListener("targetLost", () => {
+        videoEl.pause(); // Pause si le marker disparaît
       });
     });
   </script>
-
 </body>
 </html>
-
