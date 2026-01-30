@@ -10,13 +10,12 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.css">
 
   <style>
-    /* Supprime les marges et force la scène à occuper tout l'écran */
     html, body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
       width: 100%;
       height: 100%;
+      overflow: hidden;
     }
     a-scene {
       position: fixed;
@@ -24,47 +23,23 @@
       left: 0;
       width: 100%;
       height: 100%;
+      margin: 0;
     }
   </style>
 </head>
 
 <body>
-  <!-- Vidéo invisible qui sera utilisée par AR -->
+  <!-- Vidéo invisible utilisée par AR -->
   <video id="video1" src="videos/video1.mp4" preload="auto" loop muted playsinline crossorigin="anonymous"></video>
 
-  <!-- Scene AR -->
+  <!-- Scène AR -->
   <a-scene mindar-image="imageTargetSrc: markers/tableau1.mind; autoStart: true;" embedded
            vr-mode-ui="enabled: false"
            renderer="antialias: true; alpha: true">
 
-    <!-- Lumière de la scène -->
+    <!-- Lumière -->
     <a-entity light="type: ambient; intensity: 1"></a-entity>
 
-    <!-- Tout ce qui est à l'intérieur de ce entity n'apparaît que lorsque le marker est détecté -->
+    <!-- Contenu qui apparaît sur le marker -->
     <a-entity mindar-image-target="targetIndex: 0">
-
-      <!-- La vidéo qui s'affiche sur le marker -->
       <a-video src="#video1" width="1" height="0.75" position="0 0 0" rotation="0 0 0"></a-video>
-
-    </a-entity>
-
-  </a-scene>
-
-  <!-- Script pour forcer le démarrage de la vidéo dès détection du marker -->
-  <script>
-    const sceneEl = document.querySelector("a-scene");
-    const videoEl = document.querySelector("#video1");
-
-    sceneEl.addEventListener("renderstart", () => {
-      // Récupère l'AR system
-      const mindar = sceneEl.components['mindar-image-system'];
-      mindar.el.addEventListener("targetFound", () => {
-        videoEl.play(); // Démarre la vidéo automatiquement
-      });
-      mindar.el.addEventListener("targetLost", () => {
-        videoEl.pause(); // Pause si le marker disparaît
-      });
-    });
-  </script>
-</body>
-</html>
