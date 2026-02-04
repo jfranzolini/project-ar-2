@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <title>AR Test</title>
+  <meta charset="UTF-8">
+  <title>AR Tableau</title>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
-  <!-- MindAR (officiel) -->
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <!-- Bibliothèques A-Frame et MindAR -->
+  <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.css">
 
   <style>
     html, body {
@@ -17,38 +16,47 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: black;
+    }
+    a-scene {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
     }
   </style>
 </head>
 
 <body>
-<script>
-(async () => {
+  <!-- Vidéo invisible utilisée par AR -->
+  <video id="video1" src="videos/video1.mp4" preload="auto" loop muted playsinline crossorigin="anonymous"></video>
 
-  const mindarThree = new window.MINDAR.IMAGE.MindARThree({
-    container: document.body,
-    imageTargetSrc: 'markers/tableau1.mind'
-  });
+  <!-- Scène AR -->
+  <a-scene mindar-image="imageTargetSrc: markers/tableau1.mind; autoStart: true;" embedded
+           vr-mode-ui="enabled: false"
+           renderer="antialias: true; alpha: true">
 
-  const { renderer, scene, camera } = mindarThree;
+    <!-- Lumière -->
+    <a-entity light="type: ambient; intensity: 1"></a-entity>
 
-  const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-  scene.add(light);
+    <!-- Contenu qui apparaît sur le marker -->
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-video src="#video1" width="1" height="0.75" position="0 0 0" rotation="0 0 0"></a-video>
+    </a-entity>
 
-  const planeGeometry = new THREE.PlaneGeometry(1, 0.75);
-  const planeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-  const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+  </a-scene>
 
-  const anchor = mindarThree.addAnchor(0);
-  anchor.group.add(plane);
+  <!-- Script pour démarrer/mettre en pause la vidéo automatiquement -->
+  <script>
+    const sceneEl = document.querySelector("a-scene");
+    const videoEl = document.querySelector("#video1");
 
-  await mindarThree.start();
-  renderer.setAnimationLoop(() => {
-    renderer.render(scene, camera);
-  });
-
-})();
-</script>
+    sceneEl.addEventListener("renderstart", () => {
+      const mindar = sceneEl.components['mindar-image-system'];
+      mindar.el.addEventListener("targetFound", () => videoEl.play());
+      mindar.el.addEventListener("targetLost", () => videoEl.pause());
+    });
+  </script>
 </body>
 </html>
